@@ -14,7 +14,7 @@ const Login = () => {
     if (success) {
       navigation.replace('Home');
     } else {
-      Alert.alert('Error', 'Error de autenticación');
+      Alert.alert('Error', 'Credenciales incorrectas');
     }
   };
 

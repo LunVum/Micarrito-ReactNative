@@ -1,28 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import useAuthStore from '../utils/auth'; // Importar la tienda correctamente
+import useAuthStore from '../utils/auth'; // Importar la tienda de autenticación
 import Login from '../screens/Login';
 import Home from '../screens/Home';
 import Middleware from '../screens/Middleware';
+import Products from '../screens/Products';
+import Cart from '../screens/Cart';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  // Acceder directamente al estado de autenticación desde Zustand
-  const authStatus = useAuthStore((state) => state.isAuthenticated);
+  const authStatus = useAuthStore((state) => state.isAuthenticated); // Accedemos al estado de autenticación
 
-  // Si el estado de autenticación no está definido aún, muestra el indicador de carga
+  // Si no hay autenticación aún, mostramos el Middleware
   if (authStatus === null) {
     return <Middleware />;
   }
 
   return (
-    <Stack.Navigator initialRouteName={authStatus ? "Home" : "Login"}>
-      {/* Pantallas según el estado de autenticación */}
+    <Stack.Navigator initialRouteName={authStatus ? 'Home' : 'Login'}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Products" component={Products} />
+      <Stack.Screen name="Cart" component={Cart} />
     </Stack.Navigator>
   );
 };
 
 export default AppNavigator;
+
