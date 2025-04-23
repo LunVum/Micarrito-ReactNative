@@ -6,6 +6,7 @@ import Home from '../screens/Home';
 import Middleware from '../screens/Middleware';
 import Products from '../screens/Products';
 import Cart from '../screens/Cart';
+import AdminHome from '../screens/AdminHome';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +21,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator initialRouteName={authStatus ? 'Home' : 'Login'}>
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="AdminHome" component={AdminHome} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Products" component={Products} />
       <Stack.Screen name="Cart" component={Cart} />

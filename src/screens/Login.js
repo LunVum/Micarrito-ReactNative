@@ -10,9 +10,14 @@ const Login = () => {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    const success = await loginUser(email, password);
-    if (success) {
-      navigation.replace('Home');
+    const result = await loginUser(email, password);
+  
+    if (result.success) {
+      if (result.isAdmin) {
+        navigation.replace('AdminHome');
+      } else {
+        navigation.replace('Home');
+      }
     } else {
       Alert.alert('Error', 'Credenciales incorrectas');
     }
