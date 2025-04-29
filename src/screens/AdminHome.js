@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { logoutUser } from '../utils/auth';
-import { db } from '../utils/firebaseConfig';
-import { collection, addDoc } from 'firebase/firestore';
+import { supabase } from '../utils/supabaseConfig'; // Importa la configuración de Supabase
 
 const AdminHome = () => {
   const navigation = useNavigation();
@@ -19,19 +18,22 @@ const AdminHome = () => {
 
   const handleAddProduct = async () => {
     try {
-      const booksCollection = collection(db, 'books');
+      const { data, error } = await supabase
+        .from('books') // Asegúrate de que la tabla "books" exista en tu base de datos de Supabase
+        .insert([
+          {
+            id: 6, // Asegúrate de que este ID no se repita, puede automatizarse más adelante
+            name: 'Matemáticas',
+            price: 25,
+            image: 'matematicas.png',
+          },
+        ]);
 
-      const nuevoLibro = {
-        id: 6, // Asegúrate de que este ID no se repita, puede automatizarse más adelante
-        name: 'Matemáticas',
-        price: 25,
-        image: 'matematicas.png',
-      };
+      if (error) throw error;
 
-      await addDoc(booksCollection, nuevoLibro);
       Alert.alert('Éxito', 'Libro añadido correctamente');
     } catch (error) {
-      console.error('Error al añadir libro:', error);
+      console.error('Error al añadir libro:', error.message);
       Alert.alert('Error', 'No se pudo añadir el libro');
     }
   };

@@ -35,7 +35,7 @@ const products = [
   { id: '2', name: 'Historia', price: 20, image: require('../../assets/Historia.png') },
   { id: '3', name: 'Ciencias Naturales', price: 30, image: require('../../assets/cienciasNaturales.png') },
   { id: '4', name: 'Lengua y Literatura', price: 22, image: require('../../assets/lenguaLiteratura.png') },
-  { id: '5', name: 'Geografía', price: 28, image: require('../../assets/geografia.png') }, // Producto adicional
+  { id: '5', name: 'Geografía', price: 28, image: require('../../assets/geografia.png') }, 
 ];
 
 const Home = () => {
@@ -223,13 +223,3 @@ const styles = StyleSheet.create({
 });
 
 export default Home;
-
-
-
-
-
-
-
-
-
-

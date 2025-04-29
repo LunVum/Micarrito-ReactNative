@@ -1,18 +1,20 @@
 import React, { useEffect } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { checkAuth } from '../utils/auth';
+import { supabase } from '../utils/supabaseConfig';
 
 const Middleware = ({ navigation }) => {
   useEffect(() => {
-    const checkUserAuth = async () => {
-      const isAuthenticated = await checkAuth();
-      if (isAuthenticated) {
+    const unsubscribe = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
         navigation.replace('Home');
       } else {
         navigation.replace('Login');
       }
+    });
+
+    return () => {
+      unsubscribe();
     };
-    checkUserAuth();
   }, [navigation]);
 
   return (
@@ -38,4 +40,5 @@ const styles = StyleSheet.create({
 });
 
 export default Middleware;
+
 

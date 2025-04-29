@@ -1,52 +1,104 @@
-// utils/auth.js
 import { create } from 'zustand';
-import { auth } from './firebaseConfig'; // Importa desde firebaseConfig.js
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { supabase } from './supabaseConfig';
 
-// Tienda de Zustand para manejar el estado de autenticación
 const useAuthStore = create((set) => ({
   isAuthenticated: false,
   token: null,
-  isAdmin: false, 
+  isAdmin: false,
   login: (token, isAdmin) => set({ isAuthenticated: true, token, isAdmin }),
   logout: () => set({ isAuthenticated: false, token: null, isAdmin: false }),
 }));
 
-// Función para hacer login real con Firebase
-export const loginUser = async (email, password) => {
+export const signUpUser = async (email, password, role = 'user') => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const token = await userCredential.user.getIdToken();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-    const isAdmin = email === 'virginia@example.com'; // email del admin
-    useAuthStore.getState().login(token, isAdmin);
+    if (error) throw error;
 
-    return { success: true, isAdmin };
+    const user = data.user;
+    if (!user) throw new Error('Usuario no creado en Auth');
+
+    console.log('User created in auth:', user);
+
+    // Intentamos insertar el usuario en la tabla 'users'
+    console.log('Intentando insertar en users con estos datos:', {
+      id: user.id,
+      email: email,
+      role: role,
+    });
+
+    const { error: insertError } = await supabase
+      .from('users')
+      .insert([
+        {
+          id: user.id,
+          email: email,
+          role: role,
+        },
+      ]);
+
+    if (insertError) {
+      console.error('Error al insertar en la tabla users:', insertError);
+      throw insertError;
+    } else {
+      console.log('Usuario insertado correctamente');
+    }
+
+    return { success: true };
   } catch (error) {
-    console.error('Error al iniciar sesión:', error.code, error.message);
+    console.error('Error al registrar usuario:', error.message);
     return { success: false };
   }
 };
 
-// Función para cerrar sesión usando Firebase y limpiar Zustand
-export const logoutUser = async () => {
+export const loginUser = async (email, password) => {
   try {
-    await signOut(auth); // Cierra sesión en Firebase
-    useAuthStore.getState().logout(); // Limpia Zustand
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) throw error;
+
+    const token = data.session.access_token;
+    const userId = data.user.id;
+
+    // Buscar el rol por el ID del usuario
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (userError) throw userError;
+
+    const isAdmin = userData.role === 'admin';
+
+    // Guardamos en zustand
+    useAuthStore.setState({ isAuthenticated: true, token, isAdmin });
+
+    return { success: true, isAdmin };
   } catch (error) {
-    console.error('Error al cerrar sesión:', error.code, error.message);
+    console.error('Error al iniciar sesión:', error.message);
+    return { success: false };
   }
 };
 
-// Función para comprobar si el usuario está autenticado
+
+export const logoutUser = async () => {
+  try {
+    await supabase.auth.signOut();
+    useAuthStore.setState({ isAuthenticated: false, token: null, isAdmin: false });
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error.message);
+  }
+};
+
 export const checkAuth = () => {
   return useAuthStore.getState().isAuthenticated;
 };
 
-// Exporta la tienda por defecto
 export default useAuthStore;
-
-
 
 
 

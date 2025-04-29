@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import {
+  View,
+  TextInput,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  BackHandler
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { loginUser } from '../utils/auth';
+import { loginUser, signUpUser } from '../utils/auth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [hidePassword, setHidePassword] = useState(true); // Nuevo estado
+  const [hidePassword, setHidePassword] = useState(true);
   const navigation = useNavigation();
 
   const handleLogin = async () => {
     const result = await loginUser(email, password);
-  
+
     if (result.success) {
       if (result.isAdmin) {
         navigation.replace('AdminHome');
@@ -21,6 +30,27 @@ const Login = () => {
     } else {
       Alert.alert('Error', 'Credenciales incorrectas');
     }
+  };
+
+  const handleRegister = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor, rellena correo y contraseña.');
+      return;
+    }
+
+    const result = await signUpUser(email, password);
+
+    if (result.success) {
+      Alert.alert('Éxito', 'Usuario creado correctamente. Por favor inicia sesión.');
+      setEmail('');
+      setPassword('');
+    } else {
+      Alert.alert('Error', result.errorMessage || 'Error al crear usuario');
+    }
+  };
+
+  const handleExitApp = () => {
+    BackHandler.exitApp();
   };
 
   return (
@@ -45,7 +75,7 @@ const Login = () => {
               value={password}
               style={styles.passwordInput}
               onChangeText={setPassword}
-              secureTextEntry={hidePassword} //  Aquí usamos el estado
+              secureTextEntry={hidePassword}
               placeholder="Password"
               autoCapitalize="none"
             />
@@ -61,72 +91,77 @@ const Login = () => {
           <TouchableOpacity style={styles.cajaBoton} onPress={handleLogin}>
             <Text style={styles.TextoBoton}>Iniciar sesión</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.cajaBoton, { marginTop: 10 }]} onPress={handleRegister}>
+            <Text style={styles.TextoBoton}>Crear cuenta</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.cajaBoton, { marginTop: 10, backgroundColor: '#e63946' }]} onPress={handleExitApp}>
+            <Text style={styles.TextoBoton}>Salir de la aplicación</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
   );
 };
 
-export default Login;
-
 const styles = StyleSheet.create({
   padre: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#fff',
     alignItems: 'center',
-    backgroundColor: 'white',
+    justifyContent: 'center',
   },
   profile: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    borderColor: 'white',
-    marginBottom: 20,
+    marginBottom: 30,
   },
   tarjeta: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    width: '90%',
+    width: '80%',
     padding: 20,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
   },
   cajaTexto: {
-    paddingVertical: 20,
-    backgroundColor: '#cccccc40',
-    borderRadius: 30,
-    marginVertical: 10,
+    marginBottom: 15,
   },
   passwordContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 15,
+    alignItems: 'center',
   },
   passwordInput: {
     flex: 1,
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    borderRadius: 5,
   },
   toggleText: {
-    color: '#525FE1',
+    color: '#2f9e44',
     marginLeft: 10,
-    fontWeight: 'bold',
   },
   PadreBoton: {
-    alignItems: 'center',
+    marginTop: 20,
   },
   cajaBoton: {
     backgroundColor: '#525FE1',
-    borderRadius: 30,
-    paddingVertical: 20,
-    width: 150,
-    marginTop: 20,
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
   },
   TextoBoton: {
-    textAlign: 'center',
-    color: 'white',
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
+
+export default Login;
+
