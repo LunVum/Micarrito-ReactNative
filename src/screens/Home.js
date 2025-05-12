@@ -21,40 +21,72 @@ const Home = () => {
 };
 
 export default Home;*/
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, Image, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, StyleSheet,
+  ScrollView, Dimensions,
+  Image,
+  TouchableOpacity, KeyboardAvoidingView, Platform
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import useCartStore from '../store/cartStore';
 import { logoutUser } from '../utils/auth';
+import { supabase } from '../utils/supabaseConfig';
 
-// Obtener el ancho de la ventana
 const { width } = Dimensions.get('window');
 
-const products = [
-  { id: '1', name: 'Matemáticas', price: 25, image: require('../../assets/matematicas.png') },
-  { id: '2', name: 'Historia', price: 20, image: require('../../assets/Historia.png') },
-  { id: '3', name: 'Ciencias Naturales', price: 30, image: require('../../assets/cienciasNaturales.png') },
-  { id: '4', name: 'Lengua y Literatura', price: 22, image: require('../../assets/lenguaLiteratura.png') },
-  { id: '5', name: 'Geografía', price: 28, image: require('../../assets/geografia.png') }, 
+// Array de URLs completas con doble barra
+const imageUrls = [
+  'https://ninoqfhximfqkhpzpbtd.supabase.co/storage/v1/object/public/book-images//matematicas.png',
+  'https://ninoqfhximfqkhpzpbtd.supabase.co/storage/v1/object/public/book-images//Historia.png',
+  'https://ninoqfhximfqkhpzpbtd.supabase.co/storage/v1/object/public/book-images//cienciasNaturales.png',
+  'https://ninoqfhximfqkhpzpbtd.supabase.co/storage/v1/object/public/book-images//lengua%20y%20literatura.png',
+  'https://ninoqfhximfqkhpzpbtd.supabase.co/storage/v1/object/public/book-images//geografia.png',
+  // Agregar más URLs de imágenes aquí...
 ];
 
-const Home = () => {
+export default function Home() {
   const navigation = useNavigation();
-  const addToCart = useCartStore((state) => state.addToCart);
+  const addToCart = useCartStore(s => s.addToCart);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const { data: books, error: fetchError } = await supabase
+        .from('books')
+        .select('id,name,price,image');
+
+      if (fetchError) {
+        console.error('Error al obtener libros:', fetchError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Asignamos las URLs completas de las imágenes desde el array 'imageUrls'
+      const updated = books.map((item, index) => {
+        const publicUrl = imageUrls[index] || ''; // Asignar URL correspondiente o vacío si no hay más imágenes
+        return { ...item, publicUrl };
+      });
+
+      setProducts(updated);
+      setLoading(false);
+    })();
+  }, []);
 
   const handleLogout = () => {
     logoutUser();
     navigation.replace('Login');
   };
+  const goToCart = () => navigation.navigate('Cart');
 
-  const handleAddToCart = (product) => {
-    addToCart(product);
-    alert(`${product.name} añadido al carrito`);
-  };
-
-  const goToCart = () => {
-    navigation.navigate('Cart');
-  };
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <Text>Cargando productos…</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -62,164 +94,70 @@ const Home = () => {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.welcomeText}>Bienvenido a la tienda!</Text>
-
+        <Text style={styles.welcomeText}>¡Bienvenido a la tienda!</Text>
         <View style={styles.productsRow}>
-          {products.map((item) => (
+          {products.length > 0 ? products.map(item => (
             <View key={item.id} style={styles.productContainer}>
-              <Image source={item.image} style={styles.productImage} />
-              <View style={styles.productDetails}>
-                <Text style={styles.productName}>{item.name}</Text>
-                <Text style={styles.productPrice}>€{item.price}</Text>
-              </View>
+              {item.publicUrl ? (
+                <Image
+                  source={{ uri: item.publicUrl }}
+                  style={styles.productImage}
+                  resizeMode="contain"
+                  onError={e => console.error('Error al cargar la imagen:', e.nativeEvent.error)}
+                />
+              ) : (
+                <Text style={styles.noImageText}>Sin imagen disponible</Text>
+              )}
+              <Text style={styles.productName}>{item.name}</Text>
+              <Text style={styles.productPrice}>€{item.price}</Text>
               <TouchableOpacity
                 style={styles.addToCartButton}
-                onPress={() => handleAddToCart(item)}
+                onPress={() => { addToCart(item); alert(`${item.name} añadido al carrito`); }}
               >
-                <Image source={require('../../assets/iconoCarrito.png')} style={styles.cartIcon} />
+                <Text>🛒</Text>
               </TouchableOpacity>
             </View>
-          ))}
+          )) : (
+            <Text style={styles.noProductsText}>No hay productos.</Text>
+          )}
         </View>
       </ScrollView>
-
-      {/* Contenedor de botones fijos */}
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.cajaBoton} onPress={goToCart}>
-            <Text style={styles.TextoBoton}>Ver mi carrito</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.cajaBotonLogout} onPress={handleLogout}>
-            <Text style={styles.TextoBoton}>Cerrar sesión</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.button} onPress={goToCart}>
+          <Text style={styles.buttonText}>Ver carrito</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.buttonLogout} onPress={handleLogout}>
+          <Text style={styles.buttonText}>Cerrar sesión</Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
-};
+}
 
-// Estilos
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-
-  // Contenedor de los productos con Scroll
-  scrollContainer: {
-    paddingBottom: 100, // Asegura que haya suficiente espacio debajo de los productos
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  welcomeText: {
-    fontSize: 28,
-    marginBottom: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-
-  // Fila de productos
-  productsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    width: '100%',
-  },
-
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: '#fff' },
+  scrollContainer: { paddingBottom: 100, alignItems: 'center' },
+  welcomeText: { fontSize: 28, fontWeight: 'bold', margin: 20 },
+  productsRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
   productContainer: {
-    marginBottom: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    backgroundColor: '#f9f9f9',
-    alignItems: 'center',
-    width: '48%',
-    minWidth: 220,
-    marginHorizontal: 5,
+    width: width * 0.45, margin: 8, padding: 12,
+    borderWidth: 1, borderColor: '#ddd', borderRadius: 10, alignItems: 'center',
   },
-  productImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginBottom: 15,
+  productImage: { width: 100, height: 100, marginBottom: 10 },
+  noImageText: { color: 'red', marginBottom: 10 },
+  productName: { fontSize: 18, fontWeight: 'bold' },
+  productPrice: { fontSize: 16, color: '#666', marginBottom: 10 },
+  addToCartButton: { padding: 8, borderRadius: 25, borderWidth: 1, borderColor: '#ccc' },
+  noProductsText: { fontSize: 18, color: '#888', marginTop: 20 },
+  footer: {
+    flexDirection: 'row', justifyContent: 'space-around',
+    padding: 16, borderTopWidth: 1, borderColor: '#ddd', backgroundColor: '#fff',
   },
-  productDetails: {
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  productName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  productPrice: {
-    fontSize: 18,
-    color: '#666',
-  },
-  addToCartButton: {
-    backgroundColor: 'white',
-    borderRadius: 50,
-    padding: 12,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cartIcon: {
-    width: 30,
-    height: 30,
-  },
-
-  // Contenedor para los botones fijos
-  buttonContainer: {
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    zIndex: 10, // Asegura que los botones estén encima del contenido
-  },
-
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-
-  cajaBoton: {
-    backgroundColor: '#525FE1',
-    borderRadius: 30,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    alignItems: 'center',
-    width: 'auto',
-    maxWidth: 300,
-    marginTop: 15,
-    marginRight: 10,
-  },
-
-  cajaBotonLogout: {
-    backgroundColor: '#E74C3C',
-    borderRadius: 30,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    alignItems: 'center',
-    width: 'auto',
-    maxWidth: 300,
-    marginTop: 15,
-  },
-
-  TextoBoton: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
+  button: { padding: 12, backgroundColor: '#525FE1', borderRadius: 30 },
+  buttonLogout: { padding: 12, backgroundColor: '#E74C3C', borderRadius: 30 },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
 });
 
-export default Home;
+
+

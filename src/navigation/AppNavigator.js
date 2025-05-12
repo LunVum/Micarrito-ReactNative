@@ -7,6 +7,9 @@ import Middleware from '../screens/Middleware';
 import Products from '../screens/Products';
 import Cart from '../screens/Cart';
 import AdminHome from '../screens/AdminHome';
+import AddProductos from '../screens/AddProductos';
+import BuscarProductoScreen from '../screens/BuscarProductoScreen';
+import BorrarProducto from '../screens/BorrarProducto';
 
 const Stack = createStackNavigator();
 
@@ -25,6 +28,9 @@ const AppNavigator = () => {
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Products" component={Products} />
       <Stack.Screen name="Cart" component={Cart} />
+      <Stack.Screen name="AddProductos" component={AddProductos} />
+      <Stack.Screen name="BuscarProductoScreen" component={BuscarProductoScreen} />
+      <Stack.Screen name="BorrarProducto" component={BorrarProducto} />
     </Stack.Navigator>
   );
 };
