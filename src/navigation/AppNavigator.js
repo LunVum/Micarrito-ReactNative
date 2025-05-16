@@ -10,6 +10,7 @@ import AdminHome from '../screens/AdminHome';
 import AddProductos from '../screens/AddProductos';
 import BuscarProductoScreen from '../screens/BuscarProductoScreen';
 import BorrarProducto from '../screens/BorrarProducto';
+import HistorialBorrados from '../screens/HistorialBorrados';
 
 const Stack = createStackNavigator();
 
@@ -31,6 +32,7 @@ const AppNavigator = () => {
       <Stack.Screen name="AddProductos" component={AddProductos} />
       <Stack.Screen name="BuscarProductoScreen" component={BuscarProductoScreen} />
       <Stack.Screen name="BorrarProducto" component={BorrarProducto} />
+      <Stack.Screen name="HistorialBorrados" component={HistorialBorrados} />
     </Stack.Navigator>
   );
 };

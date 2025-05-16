@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  BackHandler
+  BackHandler,
+  Platform
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { loginUser, signUpUser } from '../utils/auth';
@@ -17,6 +18,14 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [hidePassword, setHidePassword] = useState(true);
   const navigation = useNavigation();
+
+  const showAlert = (title, message) => {
+    if (Platform.OS === 'web') {
+      window.alert(`${title}\n\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
 
   const handleLogin = async () => {
     const result = await loginUser(email, password);
@@ -28,24 +37,24 @@ const Login = () => {
         navigation.replace('Home');
       }
     } else {
-      Alert.alert('Error', 'Credenciales incorrectas');
+      showAlert('Error', 'Credenciales incorrectas');
     }
   };
 
   const handleRegister = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Por favor, rellena correo y contraseña.');
+      showAlert('Error', 'Por favor, rellena correo y contraseña.');
       return;
     }
 
     const result = await signUpUser(email, password);
 
     if (result.success) {
-      Alert.alert('Éxito', 'Usuario creado correctamente. Por favor inicia sesión.');
+      showAlert('Éxito', 'Usuario creado correctamente. Por favor inicia sesión.');
       setEmail('');
       setPassword('');
     } else {
-      Alert.alert('Error', result.errorMessage || 'Error al crear usuario');
+      showAlert('Error', result.errorMessage || 'Error al crear usuario');
     }
   };
 
@@ -92,11 +101,14 @@ const Login = () => {
             <Text style={styles.TextoBoton}>Iniciar sesión</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.cajaBoton, { marginTop: 10 }]} onPress={handleRegister}>
-            <Text style={styles.TextoBoton}>Crear cuenta</Text>
+          <TouchableOpacity onPress={handleRegister}>
+            <Text style={styles.linkText}>¿No tienes cuenta? Crear una</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.cajaBoton, { marginTop: 10, backgroundColor: '#e63946' }]} onPress={handleExitApp}>
+          <TouchableOpacity
+            style={[styles.cajaBoton, { marginTop: 10, backgroundColor: '#e63946' }]}
+            onPress={handleExitApp}
+          >
             <Text style={styles.TextoBoton}>Salir de la aplicación</Text>
           </TouchableOpacity>
         </View>
@@ -119,7 +131,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   tarjeta: {
-    width: '80%',
+    width: '100%',
+    maxWidth: 400,
     padding: 20,
     backgroundColor: '#f8f8f8',
     borderRadius: 10,
@@ -127,9 +140,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
+    alignSelf: 'center',
   },
   cajaTexto: {
     marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    height: 50,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -143,6 +164,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 10,
     borderRadius: 5,
+    backgroundColor: '#fff',
   },
   toggleText: {
     color: '#2f9e44',
@@ -150,10 +172,12 @@ const styles = StyleSheet.create({
   },
   PadreBoton: {
     marginTop: 20,
+    gap: 10,
   },
   cajaBoton: {
     backgroundColor: '#525FE1',
-    padding: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 5,
     alignItems: 'center',
   },
@@ -161,7 +185,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  linkText: {
+    color: '#2f80ed',
+    marginTop: 15,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    fontWeight: '500',
+  },
 });
 
 export default Login;
+
 

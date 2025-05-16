@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import useCartStore from '../store/cartStore'; // Importamos Zustand para manejar el carrito
+
+// Función para mostrar alertas de manera diferente según el entorno
+const mostrarAlerta = (titulo, mensaje) => {
+  const isWeb = Platform.OS === 'web'; // Detectamos si es la web
+
+  if (isWeb) {
+    window.alert(`${titulo}\n\n${mensaje}`); // Para la web, usamos window.alert
+  } else {
+    Alert.alert(titulo, mensaje); // Para dispositivos móviles, usamos Alert.alert
+  }
+};
 
 const Cart = ({ navigation }) => {
   const cart = useCartStore((state) => state.cart); // Obtener los productos en el carrito
@@ -18,6 +29,7 @@ const Cart = ({ navigation }) => {
   // Función para eliminar productos
   const handleRemoveFromCart = (productId) => {
     removeFromCart(productId);
+    mostrarAlerta('Producto Eliminado', 'El producto ha sido eliminado del carrito.');
   };
 
   return (
@@ -139,4 +151,3 @@ const styles = StyleSheet.create({
 });
 
 export default Cart;
-

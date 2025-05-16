@@ -12,10 +12,22 @@ import {
 } from 'react-native';
 import { supabase } from '../utils/supabaseConfig';
 
+
+const isWeb = Platform.OS === 'web';
+
+const mostrarAlerta = (titulo, mensaje, botones) => {
+  if (isWeb) {
+    window.alert(`${titulo}\n\n${mensaje}`);
+  } else {
+    Alert.alert(titulo, mensaje, botones);
+  }
+};
+
 const BorrarProducto = () => {
   const [searchField, setSearchField] = useState('');
   const [searchType, setSearchType] = useState('id');
   const [productoEncontrado, setProductoEncontrado] = useState(null);
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   const buscarProducto = async () => {
     try {
@@ -27,43 +39,49 @@ const BorrarProducto = () => {
       if (error) throw error;
 
       if (data.length === 0) {
-        Alert.alert('No encontrado', 'No se encontró ningún producto con ese criterio.');
+        mostrarAlerta('No encontrado', 'No se encontró ningún producto con ese criterio.');
         setProductoEncontrado(null);
+        if (isWeb) setResetTrigger(prev => prev + 1);
         return;
       }
 
       setProductoEncontrado(data[0]);
     } catch (error) {
       console.error('Error al buscar producto:', error.message);
-      Alert.alert('Error', 'No se pudo buscar el producto.');
+      mostrarAlerta('Error', 'No se pudo buscar el producto.');
     }
   };
 
   const confirmarBorrado = () => {
-    Alert.alert(
-      '¿Está seguro de borrar este libro?',
-      'Esta acción eliminará el producto permanentemente.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Aceptar', onPress: guardarYBorrarProducto, style: 'destructive' },
-      ],
-      { cancelable: false }
-    );
-  };
-
+    if (isWeb) {
+      const confirmado = window.confirm("¿Está seguro de borrar este libro? Esta acción eliminará el producto permanentemente.");
+    if (confirmado) guardarYBorrarProducto();
+    } else {
+      mostrarAlerta(
+        '¿Está seguro de borrar este libro?',
+        'Esta acción eliminará el producto permanentemente.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Aceptar', onPress: guardarYBorrarProducto, style: 'destructive' },
+        ]
+      );
+    };
+  }
   const guardarYBorrarProducto = async () => {
+     console.log("Iniciando proceso de borrado..."); 
     try {
-      const { error: insertError } = await supabase.from('deleted_books').insert([
-        {
-          id: productoEncontrado.id,
-          name: productoEncontrado.name,
-          price: productoEncontrado.price,
-          image: productoEncontrado.image,
-        },
-      ]);
+      // 1. Insertar en la tabla deleted_books
+      const { error: insertError } = await supabase.from('deleted_books').insert([{
+        id: productoEncontrado.id,
+        name: productoEncontrado.name,
+        price: productoEncontrado.price,
+        image: productoEncontrado.image,
+        deleted_at: new Date().toISOString(), // Campo opcional para fecha de eliminación
+      }]);
 
       if (insertError) throw insertError;
 
+      // 2. Borrar de la tabla books
       const { error: deleteError } = await supabase
         .from('books')
         .delete()
@@ -71,12 +89,24 @@ const BorrarProducto = () => {
 
       if (deleteError) throw deleteError;
 
-      Alert.alert('Éxito', 'Producto eliminado y guardado en historial.');
+      // 3. Eliminar la imagen del bucket de Supabase Storage
+      const imagePath = productoEncontrado.image;
+      const { error: storageError } = await supabase
+        .storage
+        .from('book-images')
+        .remove([imagePath]);
+
+      if (storageError) {
+        console.warn('Advertencia: No se pudo eliminar la imagen del storage:', storageError.message);
+      }
+
+      // 4. Actualizar estado local (lista de productos)
       setProductoEncontrado(null);
       setSearchField('');
+      mostrarAlerta('Éxito', 'Producto eliminado y guardado en historial.');
     } catch (error) {
       console.error('Error al eliminar producto:', error.message);
-      Alert.alert('Error', 'No se pudo eliminar el producto.');
+      mostrarAlerta('Error', 'No se pudo eliminar el producto.');
     }
   };
 
@@ -123,7 +153,7 @@ const BorrarProducto = () => {
         </TouchableOpacity>
 
         {productoEncontrado && (
-          <View style={styles.resultContainer}>
+          <View key={isWeb ? resetTrigger : undefined} style={styles.resultContainer}>
             <TextInput style={styles.input} value={productoEncontrado.id} editable={false} />
             <TextInput style={styles.input} value={productoEncontrado.name} editable={false} />
             <TextInput
@@ -141,6 +171,7 @@ const BorrarProducto = () => {
             </TouchableOpacity>
           </View>
         )}
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -154,6 +185,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'flex-start',
+    minHeight: '100%',
   },
   title: {
     fontSize: 24,
@@ -167,22 +199,24 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   input: {
-    width: '90%',
+    width: '100%',
+    maxWidth: 400, // para evitar alargamiento en web
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical: 12, // padding vertical ligeramente aumentado
     marginBottom: 15,
     backgroundColor: '#f2f2f2',
   },
   button: {
     backgroundColor: '#525FE1',
     borderRadius: 30,
-    paddingVertical: 15,
+    paddingVertical: 14,
     paddingHorizontal: 30,
     marginVertical: 10,
-    width: '90%',
+    width: '100%',
+    maxWidth: 400, // límite para web
     alignItems: 'center',
   },
   deleteButton: {
@@ -196,7 +230,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 15,
     justifyContent: 'space-between',
-    width: '90%',
+    width: '100%',
+    maxWidth: 400, // evita que se vea muy extendido
   },
   searchTypeButton: {
     padding: 10,
@@ -220,6 +255,8 @@ const styles = StyleSheet.create({
   resultContainer: {
     marginTop: 20,
     width: '100%',
+    maxWidth: 400, // mejora presentación web
     alignItems: 'center',
   },
 });
+

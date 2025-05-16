@@ -5,12 +5,23 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert
 } from 'react-native';
 import { supabase } from '../utils/supabaseConfig';
+
+// Función para mostrar alertas de manera diferente según el entorno
+const mostrarAlerta = (titulo, mensaje) => {
+  const isWeb = Platform.OS === 'web'; // Detectamos si es la web
+
+  if (isWeb) {
+    window.alert(`${titulo}\n\n${mensaje}`); // Para la web, usamos window.alert
+  } else {
+    Alert.alert(titulo, mensaje); // Para dispositivos móviles, usamos Alert.alert
+  }
+};
 
 const BuscarProductoScreen = () => {
   const [searchField, setSearchField] = useState('');
@@ -33,7 +44,7 @@ const BuscarProductoScreen = () => {
       if (error) throw error;
 
       if (data.length === 0) {
-        Alert.alert('No encontrado', 'No se encontró ningún producto con ese criterio.');
+        mostrarAlerta('No encontrado', 'No se encontró ningún producto con ese criterio.'); // Usamos mostrarAlerta
         setProductoEncontrado(null);
         return;
       }
@@ -42,7 +53,7 @@ const BuscarProductoScreen = () => {
       setModoEdicion(false); // Por si estaba activo antes
     } catch (error) {
       console.error('Error al buscar producto:', error.message);
-      Alert.alert('Error', 'No se pudo buscar el producto.');
+      mostrarAlerta('Error', 'No se pudo buscar el producto.'); // Usamos mostrarAlerta
     }
   };
 
@@ -88,7 +99,7 @@ const BuscarProductoScreen = () => {
 
       if (error) throw error;
 
-      Alert.alert('Éxito', 'Producto actualizado correctamente.');
+      mostrarAlerta('Éxito', 'Producto actualizado correctamente.'); // Usamos mostrarAlerta
       setProductoEncontrado((prev) => ({
         ...prev,
         name: editedProduct.name,
@@ -98,7 +109,7 @@ const BuscarProductoScreen = () => {
       setModoEdicion(false);
     } catch (error) {
       console.error('Error al actualizar producto:', error.message);
-      Alert.alert('Error', 'No se pudo actualizar el producto.');
+      mostrarAlerta('Error', 'No se pudo actualizar el producto.'); // Usamos mostrarAlerta
     }
   };
 
@@ -239,6 +250,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'flex-start',
+    minHeight: '100%',
   },
   title: {
     fontSize: 24,
@@ -252,22 +264,24 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   input: {
-    width: '90%',
+    width: '100%',
+    maxWidth: 400,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical: 12,
     marginBottom: 15,
     backgroundColor: '#f2f2f2',
   },
   button: {
     backgroundColor: '#525FE1',
     borderRadius: 30,
-    paddingVertical: 15,
+    paddingVertical: 14,
     paddingHorizontal: 30,
     marginVertical: 10,
-    width: '90%',
+    width: '100%',
+    maxWidth: 400,
     alignItems: 'center',
   },
   clearButton: {
@@ -281,7 +295,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 15,
     justifyContent: 'space-between',
-    width: '90%',
+    width: '100%',
+    maxWidth: 400,
   },
   searchTypeButton: {
     padding: 10,
@@ -305,8 +320,7 @@ const styles = StyleSheet.create({
   resultContainer: {
     marginTop: 20,
     width: '100%',
+    maxWidth: 400,
     alignItems: 'center',
   },
 });
-
-
