@@ -1,2 +1,2 @@
-# Login_pruebas
-crear login con react native
+# Micarrito-ReactNative
+carrito de compras de una tienda de libros escolares
