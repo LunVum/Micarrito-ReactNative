@@ -17,6 +17,7 @@
     "@supabase/supabase-js": "^2.49.4",
     "babel-preset-expo": "^12.0.11",
     "base64-arraybuffer": "^1.0.2",
+    "dotenv": "^17.1.0",
     "expo": "^52.0.46",
     "expo-asset": "~11.0.5",
     "expo-constants": "~17.0.8",

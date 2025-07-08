@@ -24,15 +24,51 @@ const AppNavigator = () => {
 
   return (
     <Stack.Navigator initialRouteName={authStatus ? 'Home' : 'Login'}>
-      <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="AdminHome" component={AdminHome} />
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="Products" component={Products} />
-      <Stack.Screen name="Cart" component={Cart} />
-      <Stack.Screen name="AddProductos" component={AddProductos} />
-      <Stack.Screen name="BuscarProductoScreen" component={BuscarProductoScreen} />
-      <Stack.Screen name="BorrarProducto" component={BorrarProducto} />
-      <Stack.Screen name="HistorialBorrados" component={HistorialBorrados} />
+      <Stack.Screen
+  name="Home"
+  component={Home}
+  options={{ title: 'Inicio' }}
+/>
+<Stack.Screen
+  name="AdminHome"
+  component={AdminHome}
+  options={{ title: 'Panel de Administrador' }}
+/>
+<Stack.Screen
+  name="Login"
+  component={Login}
+  options={{ title: 'Iniciar Sesión' }}
+/>
+<Stack.Screen
+  name="Products"
+  component={Products}
+  options={{ title: 'Productos' }}
+/>
+<Stack.Screen
+  name="Cart"
+  component={Cart}
+  options={{ title: 'Carrito de Compras' }}
+/>
+<Stack.Screen
+  name="AddProductos"
+  component={AddProductos}
+  options={{ title: 'Añadir Producto' }}
+/>
+<Stack.Screen
+  name="BuscarProductoScreen"
+  component={BuscarProductoScreen}
+  options={{ title: 'Buscar Producto' }}
+/>
+<Stack.Screen
+  name="BorrarProducto"
+  component={BorrarProducto}
+  options={{ title: 'Borrar Producto' }}
+/>
+<Stack.Screen
+  name="HistorialBorrados"
+  component={HistorialBorrados}
+  options={{ title: 'Historial de Productos Borrados' }}
+/>
     </Stack.Navigator>
   );
 };

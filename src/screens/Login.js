@@ -28,6 +28,11 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      showAlert('Error', 'Por favor, introduce el correo y la contraseña.');
+      return;
+    }
+
     const result = await loginUser(email, password);
 
     if (result.success) {
@@ -37,7 +42,7 @@ const Login = () => {
         navigation.replace('Home');
       }
     } else {
-      showAlert('Error', 'Credenciales incorrectas');
+      showAlert('Error', result.errorMessage || 'Credenciales incorrectas');
     }
   };
 
@@ -64,7 +69,11 @@ const Login = () => {
 
   return (
     <View style={styles.padre}>
-      <Image source={require("../../assets/Profile1.jpg")} style={styles.profile} />
+      {/* Título VIBOOK */}
+      <Text style={styles.titulo}>VIBOOK</Text>
+
+      {/* Logotipo */}
+      <Image source={require("../../assets/libros.png")} style={styles.profile} />
 
       <View style={styles.tarjeta}>
         <View style={styles.cajaTexto}>
@@ -123,6 +132,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  titulo: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#525FE1',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   profile: {
     width: 100,
@@ -195,5 +211,3 @@ const styles = StyleSheet.create({
 });
 
 export default Login;
-
-

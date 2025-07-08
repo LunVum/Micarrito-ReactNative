@@ -39,7 +39,7 @@ const AdminHome = () => {
   };
 
   const handleDeletedHistory = () => {
-    navigation.navigate('HistorialBorrados'); // Asegúrate de que esta pantalla esté definida en tus rutas
+    navigation.navigate('HistorialBorrados'); 
   };
 
   const buttonWidth = isWeb ? Math.min(400, width * 0.7) : '100%';

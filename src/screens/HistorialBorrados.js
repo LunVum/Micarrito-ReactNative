@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -16,7 +15,6 @@ import { supabase } from '../utils/supabaseConfig';
 
 const isWeb = Platform.OS === 'web';
 
-// Función multiplataforma para mostrar alertas
 const mostrarAlerta = (titulo, mensaje) => {
   if (isWeb) {
     window.alert(`${titulo}\n\n${mensaje}`);
@@ -28,7 +26,7 @@ const mostrarAlerta = (titulo, mensaje) => {
 const HistorialBorrados = () => {
   const [productosBorrados, setProductosBorrados] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { width, height} = useWindowDimensions();
+  const { width } = useWindowDimensions();
 
   useEffect(() => {
     fetchDeletedProducts();
@@ -52,24 +50,15 @@ const HistorialBorrados = () => {
     setLoading(false);
   };
 
-  const containerStyle = isWeb
-    ? { height: height, flex: 1, backgroundColor: '#fff' }
-    : styles.container;
-
-  const scrollStyle = isWeb
-    ? { flex: 1, height: height, overflowY: 'auto' }
-    : {};
-
   const maxContentWidth = isWeb ? Math.min(width * 0.9, 500) : '100%';
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        style={scrollStyle}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>Historial de Productos Borrados</Text>
@@ -122,14 +111,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    ...(isWeb ? { height: '100vh', borderWidth: 2, borderColor: 'red' } : {}),
+    ...(isWeb ? { height: '100vh' } : {}),
   },
   scrollContainer: {
+    flexGrow: 1,
     padding: 20,
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingBottom: 40,
-    ...(isWeb ? { borderWidth: 2, borderColor: 'blue' } : {}),
   },
   title: {
     fontSize: 24,
@@ -163,3 +152,7 @@ const styles = StyleSheet.create({
     color: '#777',
   },
 });
+
+
+
+
